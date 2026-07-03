@@ -53,6 +53,53 @@ async function main() {
       categoryTree.map((item) => item.name).join(" > ") || null;
 
     console.log(productCategory);
+
+    const description =
+      (
+        await page
+          .locator(".product-detail > .row > div:nth-child(2) > div")
+          .first()
+          .textContent()
+      )?.trim() || null;
+    console.log(description);
+
+    const priceText =
+      (await page.locator("#prices-new").textContent())?.trim() || null;
+    const price = priceText ? Number(priceText.replace("$", "")) : null;
+    console.log(price);
+
+    const salePrice = null;
+    console.log(salePrice);
+
+    const availabilityText =
+      (
+        await page.locator("#prices-wrapper span").last().textContent()
+      )?.trim() || null;
+
+    let availability = null;
+
+    if (availabilityText === "In Stock") {
+      availability = "in_stock";
+    } else if (availabilityText === "Out of Stock") {
+      availability = "out_of_stock";
+    } else if (availabilityText === "Pre Order") {
+      availability = "pre_order";
+    }
+    console.log(availability);
+
+    const imageUrl =
+      (await page.locator("#imagePopup").getAttribute("src")) || null;
+    console.log(imageUrl);
+
+    const additionalImageUrls = await page
+      .locator("#carouselImages img.product-detail-thumb-bto")
+      .evaluateAll((images) =>
+        images
+          .map((img) => img.getAttribute("popup_img"))
+          .filter(Boolean)
+          .filter((url, index, array) => array.indexOf(url) === index),
+      );
+    console.log(additionalImageUrls);
   } catch (error) {
     console.log(error);
   } finally {
