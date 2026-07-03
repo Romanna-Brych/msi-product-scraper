@@ -23,9 +23,7 @@ async function main() {
 
     const title =
       (
-        await page
-          .locator(".product-detail > .row > div:nth-child(2) > h2")
-          .textContent()
+        await page.locator(".product-detail h2.crop-text-2.title").textContent()
       )?.trim() || null;
 
     const brandText =
@@ -50,8 +48,7 @@ async function main() {
     const description =
       (
         await page
-          .locator(".product-detail > .row > div:nth-child(2) > div")
-          .first()
+          .locator(".product-detail h2.crop-text-2.title + div p")
           .textContent()
       )?.trim() || null;
 
