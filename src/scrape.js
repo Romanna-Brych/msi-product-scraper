@@ -1,24 +1,25 @@
-const { chromium } = require("playwright");
+const fs = require("fs/promises");
+const path = require("path");
+const { firefox } = require("playwright");
+
+const PRODUCT_URL =
+  "https://us-store.msi.com/Motherboards/Intel-Platform-Motherboard/INTEL-Z890/MAG-Z890-TOMAHAWK-WIFI";
 
 async function main() {
   let browser;
   try {
-    browser = await chromium.launch({
-      headless: false,
+    browser = await firefox.launch({
+      headless: true,
     });
     const page = await browser.newPage();
 
-    await page.goto(
-      "https://us-store.msi.com/Motherboards/Intel-Platform-Motherboard/INTEL-Z890/MAG-Z890-TOMAHAWK-WIFI",
-    );
+    await page.goto(PRODUCT_URL);
 
     const productIdInput = page.locator('input[name="product_id"]');
     const itemId =
       (await productIdInput.count()) > 0
         ? await productIdInput.inputValue()
         : null;
-
-    console.log(itemId);
 
     const title =
       (
@@ -27,14 +28,10 @@ async function main() {
           .textContent()
       )?.trim() || null;
 
-    console.log(title);
-
     const brandText =
       (await page.locator("#logo img").getAttribute("alt"))?.trim() || null;
 
     const brand = brandText ? brandText.split("-")[0] : null;
-
-    console.log(brand);
 
     const categoryLinks = page.locator(".breadcrumb a");
 
@@ -47,12 +44,8 @@ async function main() {
         .filter((item) => item.name && item.name.toLowerCase() !== "home"),
     );
 
-    console.log(categoryTree);
-
     const productCategory =
       categoryTree.map((item) => item.name).join(" > ") || null;
-
-    console.log(productCategory);
 
     const description =
       (
@@ -61,15 +54,12 @@ async function main() {
           .first()
           .textContent()
       )?.trim() || null;
-    console.log(description);
 
     const priceText =
       (await page.locator("#prices-new").textContent())?.trim() || null;
     const price = priceText ? Number(priceText.replace("$", "")) : null;
-    console.log(price);
 
     const salePrice = null;
-    console.log(salePrice);
 
     const availabilityText =
       (
@@ -85,11 +75,9 @@ async function main() {
     } else if (availabilityText === "Pre Order") {
       availability = "pre_order";
     }
-    console.log(availability);
 
     const imageUrl =
       (await page.locator("#imagePopup").getAttribute("src")) || null;
-    console.log(imageUrl);
 
     const additionalImageUrls = await page
       .locator("#carouselImages img.product-detail-thumb-bto")
@@ -99,7 +87,6 @@ async function main() {
           .filter(Boolean)
           .filter((url, index, array) => array.indexOf(url) === index),
       );
-    console.log(additionalImageUrls);
 
     const specs = await page
       .locator("table.table tbody tr")
@@ -109,8 +96,6 @@ async function main() {
           value: row.querySelector("td")?.textContent.trim() || null,
         })),
       );
-
-    console.log(specs);
 
     const ratingText =
       (
@@ -126,22 +111,42 @@ async function main() {
       ? Number(ratingText.split("(")[1].replace(")", ""))
       : null;
 
-    console.log(starRating);
-    console.log(reviewCount);
-
     const gtin = null;
-    console.log(gtin);
-
     const mpn =
       specs.find((spec) => spec.name === "Manufacturer Number")?.value || null;
-
-    console.log(mpn);
-
     const scrapedAt = new Date().toISOString();
 
-    console.log(scrapedAt);
+    const product = {
+      url: page.url(),
+      item_id: itemId,
+      title,
+      brand,
+      product_category: productCategory,
+      category_tree: categoryTree,
+      description,
+      price,
+      sale_price: salePrice,
+      availability,
+      image_url: imageUrl,
+      additional_image_urls: additionalImageUrls,
+      specs,
+      star_rating: starRating,
+      review_count: reviewCount,
+      gtin,
+      mpn,
+      scraped_at: scrapedAt,
+    };
+
+    const outputDir = path.join(process.cwd(), "output");
+    const outputPath = path.join(outputDir, "product.json");
+
+    await fs.mkdir(outputDir, { recursive: true });
+
+    await fs.writeFile(outputPath, JSON.stringify(product, null, 2));
+
+    console.log("Saved to output/product.json");
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     if (browser) {
       await browser.close();
