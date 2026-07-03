@@ -111,6 +111,35 @@ async function main() {
       );
 
     console.log(specs);
+
+    const ratingText =
+      (
+        await page
+          .locator("#average-rating-link #average-rating-info")
+          .first()
+          .textContent()
+      )?.trim() || null;
+
+    const starRating = ratingText ? Number(ratingText.split(" ")[0]) : null;
+
+    const reviewCount = ratingText
+      ? Number(ratingText.split("(")[1].replace(")", ""))
+      : null;
+
+    console.log(starRating);
+    console.log(reviewCount);
+
+    const gtin = null;
+    console.log(gtin);
+
+    const mpn =
+      specs.find((spec) => spec.name === "Manufacturer Number")?.value || null;
+
+    console.log(mpn);
+
+    const scrapedAt = new Date().toISOString();
+
+    console.log(scrapedAt);
   } catch (error) {
     console.log(error);
   } finally {
