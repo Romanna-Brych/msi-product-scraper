@@ -1,7 +1,7 @@
 {
   "name": "msi-product-scraper",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/scrape.js",
   "scripts": {
     "scrape": "node src/scrape.js"
   },
