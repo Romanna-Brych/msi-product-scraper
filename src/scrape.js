@@ -100,6 +100,17 @@ async function main() {
           .filter((url, index, array) => array.indexOf(url) === index),
       );
     console.log(additionalImageUrls);
+
+    const specs = await page
+      .locator("table.table tbody tr")
+      .evaluateAll((rows) =>
+        rows.map((row) => ({
+          name: row.querySelector("th")?.textContent.trim() || null,
+          value: row.querySelector("td")?.textContent.trim() || null,
+        })),
+      );
+
+    console.log(specs);
   } catch (error) {
     console.log(error);
   } finally {
